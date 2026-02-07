@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Bank Bias Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏦 National Bank Bias Detector</h1>
+            <p class="subtitle">Identify harmful psychological patterns in your trading behavior</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-box">
+                <h2>Upload Trading Data</h2>
+                <p>Upload a CSV file with columns: Timestamp, Buy/sell, Asset, P/L</p>
+                <input type="file" id="fileInput" accept=".csv" />
+                <button onclick="loadMockData()" class="btn-secondary">Use Mock Data</button>
+            </div>
+        </div>
+
+        <div id="results" class="results-section" style="display: none;">
+            <div class="summary-card">
+                <h2>Trading Summary</h2>
+                <div id="summaryContent"></div>
+            </div>
+
+            <div class="biases-grid">
+                <div class="bias-card" id="overtradingCard">
+                    <h3>Overtrading</h3>
+                    <div class="bias-content"></div>
+                </div>
+                <div class="bias-card" id="lossAversionCard">
+                    <h3>Loss Aversion</h3>
+                    <div class="bias-content"></div>
+                </div>
+                <div class="bias-card" id="revengeTradingCard">
+                    <h3>Revenge Trading</h3>
+                    <div class="bias-content"></div>
+                </div>
+            </div>
+
+            <div class="recommendations-section">
+                <h2>Personalized Recommendations</h2>
+                <div id="recommendationsContent"></div>
+            </div>
+
+            <div class="charts-section">
+                <h2>Visual Insights</h2>
+                <div id="chartsContainer"></div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing your trading data...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
