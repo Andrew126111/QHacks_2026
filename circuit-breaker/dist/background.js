@@ -26,17 +26,11 @@
     /* Loss Aversion */
     LOSS_AVERSION_DRAWDOWN_PCT: 0.1,
     LOSS_AVERSION_CANCEL_COUNT: 2,
-    /* Disposition Effect */
-    DISPOSITION_MIN_TRADES: 8,
-    DISPOSITION_WIN_LOSS_RATIO: 0.5,       // median win / median loss < this = triggered
     /* Herd Mentality */
     HERD_NEW_ASSET_THRESHOLD: 3,           // fewer than N past trades on asset = "new"
     /* Anchoring */
     ANCHORING_PRICE_TOLERANCE: 0.03,       // within 3% of entry price
     ANCHORING_MIN_TRADES: 3,
-    /* Confirmation Bias */
-    CONFIRMATION_REPEATED_BUYS: 3,         // N+ buys into same losing asset
-    CONFIRMATION_DRAWDOWN_PCT: 0.15,       // 15% avg loss on asset
     /* Recency Bias */
     RECENCY_STREAK_LENGTH: 3,
     RECENCY_SIZE_CHANGE_PCT: 0.5,          // 50% size change after streak
@@ -75,10 +69,8 @@
         () => this.detectOvertrading(),
         () => this.detectRevengeTrading(),
         () => this.detectLossAversion(),
-        () => this.detectDispositionEffect(),
         () => this.detectHerdMentality(),
         () => this.detectAnchoringBias(),
-        () => this.detectConfirmationBias(),
         () => this.detectRecencyBias(),
         () => this.detectGamblersFallacy(),
         () => this.detectOverconfidence(),
@@ -266,44 +258,7 @@
         factors
       };
     }
-    /* ── D) Disposition Effect ──────────────────────────────── */
-    detectDispositionEffect() {
-      const factors = [];
-      let score = 0;
-      if (this.trades.length < BIAS_THRESHOLDS.DISPOSITION_MIN_TRADES) {
-        return { detected: false, type: "disposition_effect", severity: "low", score: 0, description: "Not enough trade history to assess.", factors: [] };
-      }
-      const wins = this.trades.filter(t => (t.pl ?? 0) > 0).map(t => t.pl);
-      const losses = this.trades.filter(t => (t.pl ?? 0) < 0).map(t => Math.abs(t.pl));
-      if (wins.length >= 3 && losses.length >= 3) {
-        const medianWin = wins.sort((a, b) => a - b)[Math.floor(wins.length / 2)];
-        const medianLoss = losses.sort((a, b) => a - b)[Math.floor(losses.length / 2)];
-        if (medianLoss > 0 && medianWin / medianLoss < BIAS_THRESHOLDS.DISPOSITION_WIN_LOSS_RATIO) {
-          score += 45;
-          factors.push(`Median win ($${medianWin.toFixed(2)}) is much smaller than median loss ($${medianLoss.toFixed(2)})`);
-        }
-        const avgWinPct = wins.length / this.trades.length;
-        if (avgWinPct > 0.6 && medianWin < medianLoss * 0.4) {
-          score += 25;
-          factors.push("High win rate but small wins vs large losses — cutting winners early");
-        }
-      }
-      // Check for quick profit-taking
-      const recent = this.trades.slice(-10);
-      const quickWins = recent.filter(t => (t.pl ?? 0) > 0 && (t.pl ?? 0) < this.avgSize(recent) * 0.02);
-      if (quickWins.length >= 3) {
-        score += 20;
-        factors.push("Taking very small profits frequently — may be exiting winners too early");
-      }
-      score = Math.min(100, score);
-      return {
-        detected: score >= 30, type: "disposition_effect",
-        severity: score >= 70 ? "high" : score >= 45 ? "moderate" : "low",
-        score, description: score >= 30 ? "Disposition Effect detected: you're selling winners too early and holding losers too long. This creates a pattern of small gains but large losses." : "No disposition effect detected.",
-        factors
-      };
-    }
-    /* ── F) Herd Mentality ───────────────────────────────── */
+    /* ── D) Herd Mentality ───────────────────────────────── */
     detectHerdMentality() {
       const factors = [];
       let score = 0;
@@ -390,49 +345,7 @@
         factors
       };
     }
-    /* ── H) Confirmation Bias ────────────────────────────── */
-    detectConfirmationBias() {
-      const factors = [];
-      let score = 0;
-      const asset = this.currentTrade.asset || "";
-      const assetTrades = this.trades.filter(t => t.asset === asset);
-      const assetBuys = assetTrades.filter(t => t.action === "buy" || t.action === "Buy");
-      const assetPL = assetTrades.reduce((s, t) => s + (t.pl ?? 0), 0);
-      // Repeated buys in a losing position
-      if (assetBuys.length >= BIAS_THRESHOLDS.CONFIRMATION_REPEATED_BUYS && assetPL < 0) {
-        score += 40;
-        factors.push(`${assetBuys.length} buy orders on ${asset} despite net loss of $${Math.abs(assetPL).toFixed(2)}`);
-      }
-      // Doubling down — each successive buy is bigger
-      if (assetBuys.length >= 3) {
-        const sizes = assetBuys.map(t => (t.quantity ?? 1) * (t.price ?? 0));
-        let increasing = 0;
-        for (let i = 1; i < sizes.length; i++) {
-          if (sizes[i] > sizes[i - 1] * 1.1) increasing++;
-        }
-        if (increasing >= 2 && assetPL < 0) {
-          score += 30;
-          factors.push("Increasing position size on a losing trade — doubling down on your thesis");
-        }
-      }
-      // No exit behavior despite significant drawdown
-      const avgPL = assetTrades.length > 0 ? assetPL / assetTrades.length : 0;
-      const avgTradeSize = this.avgSize(assetTrades);
-      if (avgTradeSize > 0 && Math.abs(avgPL) / avgTradeSize > BIAS_THRESHOLDS.CONFIRMATION_DRAWDOWN_PCT) {
-        if (assetPL < 0 && this.currentTrade.action !== "sell") {
-          score += 20;
-          factors.push("Significant drawdown with no exit — ignoring opposing signals");
-        }
-      }
-      score = Math.min(100, score);
-      return {
-        detected: score >= 30, type: "confirmation_bias",
-        severity: score >= 70 ? "high" : score >= 45 ? "moderate" : "low",
-        score, description: score >= 30 ? "Confirmation Bias detected: you may be seeking information that supports your position while ignoring warning signs." : "No confirmation bias detected.",
-        factors
-      };
-    }
-    /* ── I) Recency Bias ─────────────────────────────────── */
+    /* ── H) Recency Bias ─────────────────────────────────── */
     detectRecencyBias() {
       const factors = [];
       let score = 0;
@@ -731,8 +644,15 @@
   async function set(key, value) {
     await chrome.storage.local.set({ [key]: value });
   }
+  var REMOVED_BIASES = ["confirmation_bias", "disposition_effect"];
   async function getTrades() {
-    return get(STORAGE_KEYS.TRADES, []);
+    var trades = await get(STORAGE_KEYS.TRADES, []);
+    for (var i = 0; i < trades.length; i++) {
+      if (trades[i].flags) {
+        trades[i].flags = trades[i].flags.filter(function(f) { return REMOVED_BIASES.indexOf(f) === -1; });
+      }
+    }
+    return trades;
   }
   async function addTrade(trade) {
     const trades = await getTrades();
@@ -1001,7 +921,10 @@
       analyzed.push(trade);
     }
 
-    const allTrades = [...existingTrades, ...analyzed];
+    // Deduplicate: remove existing trades that match an imported trade by timestamp + asset
+    const importedKeys = new Set(analyzed.map(t => t.timestamp + "_" + t.asset));
+    const deduped = existingTrades.filter(t => !importedKeys.has(t.timestamp + "_" + t.asset));
+    const allTrades = [...deduped, ...analyzed];
     allTrades.sort((a, b) => a.timestamp - b.timestamp);
     // Keep all trades from the last 30 days (no count cap)
     const cutoff30d = Date.now() - ROLLING_WINDOWS.LAST_30D_MS;

@@ -41,10 +41,8 @@
     overtrading: "Overtrading",
     revenge_trading: "Revenge Trading",
     loss_aversion: "Loss Aversion",
-    disposition_effect: "Disposition Effect",
     herd_mentality: "Herd Mentality",
     anchoring_bias: "Anchoring Bias",
-    confirmation_bias: "Confirmation Bias",
     recency_bias: "Recency Bias",
     gamblers_fallacy: "Gambler\u2019s Fallacy",
     overconfidence: "Overconfidence",
@@ -58,10 +56,8 @@
     overtrading: "#e74c3c",
     revenge_trading: "#e67e22",
     loss_aversion: "#f39c12",
-    disposition_effect: "#9b59b6",
     herd_mentality: "#1abc9c",
     anchoring_bias: "#3498db",
-    confirmation_bias: "#e91e63",
     recency_bias: "#00bcd4",
     gamblers_fallacy: "#ff5722",
     overconfidence: "#ff9800",
@@ -473,21 +469,17 @@
     var checks = [
       ["overtrading", 3, "24h", "Slow Down", " overtrading flags in the last 24h. Set a daily trade limit and stick to it. Quality > quantity.", stats.tradesLast24h],
       ["revenge_trading", 2, "30d", "Revenge Pattern", " revenge trading instances this month. After a loss, wait at least 15 minutes and reduce your next position by 50%.", stats.tradesLast30d],
-      ["disposition_effect", 2, "30d", "Disposition Effect", null, stats.tradesLast30d],
       ["gamblers_fallacy", 1, "30d", "Gambler\u2019s Fallacy", null, stats.tradesLast30d],
       ["sunk_cost", 2, "30d", "Sunk Cost Trap", null, stats.tradesLast30d],
       ["overconfidence", 2, "30d", "Overconfidence Warning", null, stats.tradesLast30d],
-      ["confirmation_bias", 2, "30d", "Confirmation Bias", null, stats.tradesLast30d],
       ["recency_bias", 1, "30d", "Recency Bias", null, stats.tradesLast30d],
       ["mental_accounting", 1, "30d", "Mental Accounting", null, stats.tradesLast30d]
     ];
 
     var defaultBodies = {
-      disposition_effect: "You\u2019re cutting winners short and holding losers. Try setting profit targets AND stop-losses before entering trades.",
       gamblers_fallacy: "You\u2019re increasing bets after losses expecting a reversal. Each trade is independent \u2014 past losses don\u2019t make wins more likely.",
       sunk_cost: "You\u2019re averaging down into losing positions. The money already lost shouldn\u2019t influence your next decision \u2014 focus on what the trade looks like NOW.",
       overconfidence: "Your risk per trade is climbing beyond your average. Stay disciplined \u2014 overconfidence is the most expensive bias in trading.",
-      confirmation_bias: "You keep buying into losing positions. Actively seek out reasons NOT to make a trade before entering.",
       recency_bias: "Your trade sizing is swinging based on recent wins or losses. Stick to a consistent position sizing strategy regardless of recent outcomes.",
       mental_accounting: "You\u2019re risking more after profits \u2014 treating gains as \u2018house money.\u2019 All capital is real money. Maintain consistent risk rules."
     };
