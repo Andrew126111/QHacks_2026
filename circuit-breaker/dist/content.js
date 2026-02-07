@@ -325,10 +325,8 @@
     overtrading: "\u{1F504}",
     revenge_trading: "\u{1F3AF}",
     loss_aversion: "\u{1FAA4}",
-    disposition_effect: "\u2696\uFE0F",
     herd_mentality: "\u{1F411}",
     anchoring_bias: "\u2693",
-    confirmation_bias: "\u{1F50D}",
     recency_bias: "\u23F3",
     gamblers_fallacy: "\u{1F3B2}",
     overconfidence: "\u{1F451}",
@@ -340,10 +338,8 @@
     overtrading: "Overtrading",
     revenge_trading: "Revenge Trading",
     loss_aversion: "Loss Aversion (Hope Trap)",
-    disposition_effect: "Disposition Effect",
     herd_mentality: "Herd Mentality",
     anchoring_bias: "Anchoring Bias",
-    confirmation_bias: "Confirmation Bias",
     recency_bias: "Recency Bias",
     gamblers_fallacy: "Gambler's Fallacy",
     overconfidence: "Overconfidence Bias",
@@ -451,7 +447,15 @@
       biasCost = 0;
     }
     function msg(m) {
-      return new Promise((r) => chrome.runtime.sendMessage(m, r));
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(m, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
     }
     chrome.runtime.onMessage.addListener((m) => {
       if (m.type === "COOLDOWN_EXPIRED") overlay.remove();
