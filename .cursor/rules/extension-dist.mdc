@@ -1,0 +1,13 @@
+---
+description: Chrome extension files live in circuit-breaker/dist — edit there
+globs: circuit-breaker/dist/**/*
+alwaysApply: true
+---
+
+# Chrome Extension = circuit-breaker/dist
+
+The **loaded extension** is `circuit-breaker/dist/`. Chrome loads this folder when you use "Load unpacked."
+
+- **Always edit extension files in** `circuit-breaker/dist/`, not in `extension/` or other source folders.
+- Key files: `manifest.json`, `background.js`, `content.js`, `content.css`, `popup.html`, `popup.js`, `popup.css`, and `icons/`.
+- Changes in `circuit-breaker/dist/` are what the extension uses; reload the extension in `chrome://extensions` to see updates.
